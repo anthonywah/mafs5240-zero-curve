@@ -20,8 +20,8 @@ namespace UnitTest
 
 		TEST_CLASS_INITIALIZE(LoadHolidays)
 		{
-			// test class initialization  code
-			pJpy = new MMCalendar("C:\\temp\\JPY_Holiday.txt", "JPY");
+			// test class initialization code
+			pJpy = new MMCalendar("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
 		}
 		TEST_METHOD(Holiday20131104)
 		{
@@ -50,8 +50,8 @@ namespace UnitTest
 		TEST_CLASS_INITIALIZE(ConstructCurve)
 		{
 			// test class initialization  code
-			pJpy = new MMCalendar("C:\\temp\\JPY_Holiday.txt", "JPY");
-			cd.load("C:\\temp\\curveData.txt");
+			pJpy = new MMCalendar("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
+			cd.load("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt");
 			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy,
 				cd.cash, cd.futures, cd.swaps);
 		}
