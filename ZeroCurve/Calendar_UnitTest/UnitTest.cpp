@@ -21,7 +21,7 @@ namespace UnitTest
 		TEST_CLASS_INITIALIZE(LoadHolidays)
 		{
 			// test class initialization code
-			pJpy = new MMCalendar("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
+			pJpy = new MMCalendar("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
 		}
 		TEST_METHOD(Holiday20131104)
 		{
@@ -43,6 +43,40 @@ namespace UnitTest
 			pJpy->addMonths(d, 1);
 			Assert::IsTrue(d == date(2013, 3, 29));
 		}
+
+		TEST_METHOD(addMonth)
+		{
+			date d(2022, 12, 21);
+			pJpy->addMonths(d, 1);
+			Assert::IsTrue(d == date(2023, 1, 23));
+			date d2(2022, 12, 1);
+			pJpy->addMonths(d2, 1);
+			Assert::IsTrue(d2 == date(2023, 1, 4));
+		}
+
+		TEST_METHOD(ROLL)
+		{
+			date d(2022, 12, 16);
+			pJpy->roll(d);
+			Assert::IsTrue(d == date(2022, 12, 19));
+			date d2(2022, 12, 30);
+			pJpy->roll(d2);
+			Assert::IsTrue(d2 == date(2022, 12, 29));
+		}
+
+		TEST_METHOD(IMMDay1)
+		{
+			date d(2022, 12, 21);
+			Assert::IsTrue(pJpy->isIMMDay(d));
+			date d2 = pJpy->nextIMMDay(d);
+			Assert::IsTrue(d2 == date(2023, 3, 15));
+			date d3(2022, 1, 3);
+			date d4 = pJpy->nextIMMDay(d3);
+			Assert::IsTrue(d4 == date(2022, 3, 16));
+		}
+
+
+
 	};
 
 	TEST_CLASS(ZeroCurveUnitTest) {
@@ -50,8 +84,8 @@ namespace UnitTest
 		TEST_CLASS_INITIALIZE(ConstructCurve)
 		{
 			// test class initialization  code
-			pJpy = new MMCalendar("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
-			cd.load("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt");
+			pJpy = new MMCalendar("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
+			cd.load("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt");
 			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy,
 				cd.cash, cd.futures, cd.swaps);
 		}
