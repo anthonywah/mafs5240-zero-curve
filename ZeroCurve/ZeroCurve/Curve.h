@@ -47,7 +47,7 @@ public:
 		CashInput* cin, FuturesInput* fin, SwapsInput* sin);
 
 	bool insertKeyPoint(date, DiscountFactorType);
-	KeyPoints::const_iterator firstKeyPoint();
+	KeyPoints::const_iterator firstKeyPoint() { return m_keyPoints.begin(); };
 	KeyPoints::const_iterator endKeyPoint() { return m_keyPoints.end(); }
 	KeyPoint retrieveKeyPoint(KeyPoints::const_iterator);
 	double interpolate(date);		// return 0 if unsuccessful

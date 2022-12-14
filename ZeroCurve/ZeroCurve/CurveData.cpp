@@ -29,7 +29,7 @@ parse_date(string date_string) {
 	date_string.erase(0, pos + 1);
 	token3 = date_string.substr(0, date_string.length());
 
-	int day, month, year;
+	int day, month = 0, year;
 	day = stoi(token1);
 	year = stoi(token3) + 2000;
 	for (int i = 0; i < 13; i++) {
