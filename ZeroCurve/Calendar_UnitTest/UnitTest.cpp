@@ -83,13 +83,16 @@ namespace UnitTest
 	public:
 		TEST_CLASS_INITIALIZE(ConstructCurve)
 		{
-			// test class initialization  code
-			//pJpy = new MMCalendar("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt", "JPY");
-			pJpy = new MMCalendar("C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\JPY_Holiday.txt", "JPY");
-			//cd.load("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt");
-			cd.load("C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\ZeroCurve\\\curveData.txt");
-			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy,
-				cd.cash, cd.futures, cd.swaps);
+			// test class initialization code
+			string mkt = "JPY";
+			//string holidayPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
+			//string curveDataPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt";
+			string holidayPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
+			const char* curveDataPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\curveData.txt";
+			
+			pJpy = new MMCalendar(holidayPath, mkt);
+			cd.load(curveDataPath);
+			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy, cd.cash, cd.futures, cd.swaps);
 		}
 
 		TEST_METHOD(Cash3M)

@@ -26,6 +26,7 @@ class __declspec(dllexport) Curve {
 private:
 	int cashYB, futuresYB, swapsYB, nPerYear;
 	date dt3M;
+	date dtSpot;
 	KeyPoints m_keyPoints;
 
 	void initProcess();
@@ -60,4 +61,9 @@ public:
 	date	dt;		// fixed leg cash flow date
 	double	CF;		// fixed leg cash flow
 	double	DF;		// fixed leg cash flow X discount factor
+	SwapsCashFlow(date, double, double);
 };
+
+int getDayCountBase(string, date);
+
+double getFpsDf1ToDf2Factor(FuturesPriceType, date, date, int);

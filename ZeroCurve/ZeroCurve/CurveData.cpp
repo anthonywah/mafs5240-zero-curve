@@ -8,6 +8,7 @@
 using std::string;
 using std::ifstream;
 using std::ofstream;
+using std::qsort;
 
 vector<string> monthInYear
 {
@@ -117,9 +118,8 @@ CurveData::load(const char* filename) {
 			SwapsPoint sp = make_pair(token2, stod(token3));
 			swaps->m_swapsPoints.push_back(sp);
 		}
-
-
 	}
 	dataFile.close();
 	return true;
 }
+

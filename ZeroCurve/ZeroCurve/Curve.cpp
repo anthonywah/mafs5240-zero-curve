@@ -12,10 +12,9 @@ Curve::Curve(long baseDt, int spot, MMCalendar* pMMCal_,
 	processSwaps();
 }
 
-void
-Curve::insertKeyPoint(date dt, DiscountFactorType df) {
-	m_keyPoints[dt] = df;
-}
+SwapsCashFlow::SwapsCashFlow(date dtInput, double CFInput, double DFInput)
+	: dt(dtInput), CF(CFInput), DF(DFInput) {}
+
 
 KeyPoint
 Curve::retrieveKeyPoint(KeyPoints::const_iterator ki) {
@@ -27,6 +26,11 @@ Curve::retrieveKeyPoint(KeyPoints::const_iterator ki) {
 
 void
 Curve::initProcess() {
+	dtSpot = m_baseDate;
+	m_pMMCal->addBusDays(dtSpot, m_daysToSpot);
+	dt3M = dtSpot;
+	m_pMMCal->addMonths(dt3M, 3);
+	
 }
 
 double
@@ -78,33 +82,81 @@ Curve::processCash() {
 
 void
 Curve::processFutures() {
-	// First get df1fut from simultaneously solving equations
-	// Then calculate remaining futures price
+
+	DiscountFactorType df3M = getDiscountFactor(dt3M);
+	int futDayCountBase = getDayCountBase(m_pFuturesInput->m_futuresBasis, dtSpot);
+
+	// First get fp1
+	FuturesPoints fps = m_pFuturesInput->m_futuresPoints;
+	FuturesPoint fp1 = fps[0];
+	for (FuturesPoints::iterator it = fps.begin(); it < fps.end(); it++) {
+		if (it->first < fp1.first) {
+			fp1 = *it;
+		}
+	}
+
+	// Then get fp2
+	FuturesPoint fp2 = fp1;
+	for (FuturesPoints::iterator it = fps.begin(); it < fps.end(); it++) {
+		if (it->first != fp1.first) {
+			if (fp2.first == fp1.first || (fp2.first != fp1.first && it->first < fp2.first)) {
+				fp2 = *it;
+			}
+		}
+	}
+
+	// Then calculate df1 first
+	DiscountFactorType df1 = df3M / pow(getFpsDf1ToDf2Factor(fp1.second, fp1.first, fp2.first, futDayCountBase), ((dt3M - fp1.first) / (fp2.first - fp1.first)));
+	insertKeyPoint(fp1.first, df1);
+
+	// Then loop through FuturesPoints to insert key points -> Calculate df2 subsequently
+	// Not sure if FuturesPoints is sorted or not, so we adopt the following loops
+	bool calculating = true;
+	DiscountFactorType df2;
+	while (calculating) {
+		calculating = false;  // terminating condition
+		for (FuturesPoints::iterator it = fps.begin(); it < fps.end(); it++) {
+			if (m_keyPoints.find(it->first) == m_keyPoints.end()) {  // The point has not been inserted yet
+				calculating = true;
+				if (it->first != fp1.first) {  // The point is not current point
+					if (fp2.first == fp1.first || (fp2.first != fp1.first && it->first < fp2.first)) {  
+						fp2 = *it;
+					}
+				}
+			}
+		}
+		if (calculating) {
+			df2 = df1 * getFpsDf1ToDf2Factor(fp1.second, fp1.first, fp2.first, futDayCountBase);
+			insertKeyPoint(fp2.first, df2);
+
+			// Condition for next calculation
+			df1 = df2;
+			fp1 = fp2;
+		}
+	}
 }
 
 void
 Curve::processSwaps() {
 	SwapsCashFlows data;
 	date spotDt = date(m_baseDate);
+	date preDt = spotDt;
 	m_pMMCal->addBusDays(spotDt, m_daysToSpot);
 	data.push_back(SwapsCashFlow(spotDt, -100, getDiscountFactor(spotDt)));
-	int multiplier;
-	if (m_pSwapsInput->m_swapsFreq == "Monthly") { multiplier = 12; }
-	else if (m_pSwapsInput->m_swapsFreq == "Quarterly") { multiplier = 4; }
-	else if (m_pSwapsInput->m_swapsFreq == "Semi-Annually") { multiplier = 2; }
-	else if (m_pSwapsInput->m_swapsFreq == "Annually") { multiplier = 1; }
+
+	// Fix multipler first
+	SwapsFreqType freq = m_pSwapsInput->m_swapsFreq;
+	int multiplier = freq == "Monthly" ? 12 : freq == "Quarterly" ? 4 : freq == "Semi-Annually" ? 2 : freq == "Annually" ? 1 : 0;
+
+	// Calculate base for day count base
+	int dayCountbase = getDayCountBase(m_pSwapsInput->m_swapsBasis, spotDt);
+	
+	// Calculate key points 
 	for (int i = 0; i < m_pSwapsInput->m_swapsPoints.size(); i++) {
 		int legs = multiplier * stoi(m_pSwapsInput->m_swapsPoints[i].first.substr(0, 2));
-		date preDt = spotDt;
 		for (int j = 0; j < legs; j++) {
 			m_pMMCal->addMonths(spotDt, 12 / multiplier);
-			if (m_pSwapsInput->m_swapsBasis == "ACT/365") {
-				data.push_back(SwapsCashFlow(spotDt, 100 * m_pSwapsInput->m_swapsPoints[i].second * (spotDt - preDt / 365), getDiscountFactor(spotDt)));}
-			else if (m_pSwapsInput->m_swapsBasis == "ACT/360") {
-				data.push_back(SwapsCashFlow(spotDt, 100 * m_pSwapsInput->m_swapsPoints[i].second * (spotDt - preDt / 360), getDiscountFactor(spotDt)));}
-			else if (m_pSwapsInput->m_swapsBasis == "ACT/ACT") {
-				data.push_back(SwapsCashFlow(spotDt, 100 * m_pSwapsInput->m_swapsPoints[i].second * (spotDt - preDt / date::daysInYear(spotDt.year())), getDiscountFactor(spotDt)));
-			}
+			data.push_back(SwapsCashFlow(spotDt, 100 * m_pSwapsInput->m_swapsPoints[i].second * (spotDt - preDt / dayCountbase), getDiscountFactor(spotDt)));
 			preDt = spotDt;
 		}
 		date lastDt = m_keyPoints.rbegin()->first;
@@ -121,7 +173,9 @@ Curve::processSwaps() {
 			iter++;
 		} while (abs(npv) > 0.0001 && iter < 1000);
 		for (int k = 0; k < data.size(); ++k) {
-			if (data[k].DF == 0.0) { insertKeyPoint(data[k].dt, lastdf * pow(df / lastdf, (data[k].dt - lastDt) / (data.back().dt - lastDt))); }
+			if (data[k].DF == 0.0) { 
+				insertKeyPoint(data[k].dt, lastdf * pow(df / lastdf, (data[k].dt - lastDt) / (data.back().dt - lastDt))); 
+			}
 		}
 		data.clear();
 	}
@@ -136,4 +190,13 @@ Curve::insertKeyPoint(date dt, DiscountFactorType df) {
 
 	// Return false if key existed already
 	return false;  
+}
+
+int getDayCountBase(string basisType, date dt) {
+	return basisType == "ACT/360" ? 360 : basisType == "ACT/365" ? 365 : basisType == "ACT/ACT" ? dt.daysInYear() : 0;
+}
+
+
+double getFpsDf1ToDf2Factor(FuturesPriceType p1, date d1, date d2, int dayCountBase) {
+	return 1 / (1 + ((1 - (p1 / 100)) * ((d2 - d1) / dayCountBase)));
 }
