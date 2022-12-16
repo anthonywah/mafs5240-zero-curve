@@ -7,7 +7,7 @@
 bool
 Calendar::roll(date& dt)
 {
-	dt++; 
+	// keep adding days if dt is not bus day
 	while (!isBusDay(dt)) {
 		dt++;
 	}
@@ -24,6 +24,8 @@ bool
 Calendar::addBusDays(date& dt, int count)
 {
 	for (int i = 0; i < count; i++) {
+		// add 1 day, roll to next bus day if dt is not a bus day
+		dt++;	
 		roll(dt);
 	}
 	return SUCCESS;
@@ -97,17 +99,22 @@ MMCalendar::MMCalendar(string filename, string mkt) :market(mkt) {
 bool
 MMCalendar::roll(date& dt)
 {
+	// if dt is bus day, do nothing
+	if (isBusDay(dt)) {
+		return SUCCESS;
+	}
 	date dt_copy = date(dt.year(), dt.month(), dt.day());
-	Calendar::roll(dt_copy);
+	addBusDays(dt_copy, 1);
 	bool isLastTradeDay = (dt_copy.month() != dt.month());
 	if (isLastTradeDay) {
+		// dt is the last trading day, roll backward
 		dt--;
 		while (!isBusDay(dt)) {
 			dt--;
 		}
 	}
 	else {
-		Calendar::roll(dt);
+		addBusDays(dt, 1);
 	}
 	return SUCCESS;
 }
@@ -132,10 +139,7 @@ MMCalendar::nextIMMDay(date& dt) {
 		// third wednesday is always the first wednesday on or after day 15 of the month
 		date day15 = date(dt.year(), dt.month(), 15);
 		date imm_day = day15 + (7 + 3 - day15.dayOfWeek()) % 7; // this gets the 1st wednesday after day 15 of the month
-		while (!Calendar::isBusDay(imm_day)) {
-			// if third wednesday is holiday, roll until it is not business day
-			Calendar::roll(imm_day);
-		}
+		roll(imm_day); // roll to the nearest bus day if it is not
 		// if the imm day has not passed, return it
 		if (dt < imm_day) { 
 			return imm_day; 
@@ -144,6 +148,6 @@ MMCalendar::nextIMMDay(date& dt) {
 	// if it is not march, june, sept, dec, or the imm day of the month has passed
 	// it is same as the next IMM day of the day 1 of next month
 	date som = date(dt.year(), dt.month(), 1);
-	Calendar::addMonths(som, 1);
+	addMonths(som, 1);
 	return nextIMMDay(dt);
 }

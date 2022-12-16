@@ -52,16 +52,27 @@ namespace UnitTest
 			date d2(2022, 12, 1);
 			pJpy->addMonths(d2, 1);
 			Assert::IsTrue(d2 == date(2023, 1, 4));
+			date d3(2007, 3, 12);
+			pJpy->addMonths(d3, 36);
+			Assert::IsTrue(d3 == date(2010, 3, 12));
+			date d4(2007, 3, 12);
+			pJpy->addMonths(d4, 6);
+			Assert::IsTrue(d4 == date(2007, 9, 12));
+
+
 		}
 
 		TEST_METHOD(ROLL)
 		{
-			date d(2022, 12, 16);
+			date d(2022, 12, 17);
 			pJpy->roll(d);
 			Assert::IsTrue(d == date(2022, 12, 19));
 			date d2(2022, 12, 30);
 			pJpy->roll(d2);
-			Assert::IsTrue(d2 == date(2022, 12, 29));
+			Assert::IsTrue(d2 == date(2022, 12, 30));
+			date d3(2022, 7, 30);
+			pJpy->roll(d3);
+			Assert::IsTrue(d3 == date(2022, 7, 29));
 		}
 
 		TEST_METHOD(IMMDay1)
@@ -85,16 +96,26 @@ namespace UnitTest
 		{
 			// test class initialization code
 			string mkt = "JPY";
-			//string holidayPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
-			//string curveDataPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt";
-			string holidayPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
-			const char* curveDataPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\curveData.txt";
-			
+			string holidayPath = "C:\\Users\\liuch\\\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
+			const char* curveDataPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt";
+			//string holidayPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
+			//const char* curveDataPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\curveData.txt";
+			Desktop
 			pJpy = new MMCalendar(holidayPath, mkt);
 			cd.load(curveDataPath);
 			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy, cd.cash, cd.futures, cd.swaps);
 		}
 
+		TEST_METHOD(cash)
+		{
+			date d(2007, 3, 12);
+			DiscountFactorType df = pCurve->getDiscountFactor(d);
+			Assert::AreEqual(1, pCurve->getDiscountFactor(date(2007, 3, 8)), 0.00000001);  // base
+			Assert::AreEqual(0.999984167, pCurve->getDiscountFactor(date(2007, 3, 9)), 0.00000001); // 1d
+			Assert::AreEqual(0.999968334, pCurve->getDiscountFactor(date(2007, 3, 10)), 0.00000001); // 2d
+			Assert::AreEqual(0.99993667, pCurve->getDiscountFactor(date(2007, 3, 12)), 0.00000001); // spot
+			Assert::AreEqual(0.998135175, pCurve->getDiscountFactor(date(2007, 6, 12)), 0.00000001); // 3M
+		}
 		TEST_METHOD(Cash3M)
 		{
 			date d(2007, 6, 12);
@@ -135,5 +156,20 @@ namespace UnitTest
 			DiscountFactorType df = pCurve->getDiscountFactor(d);
 			Assert::AreEqual(0.576921389, df, 0.00000001);
 		}
+
+		TEST_METHOD(RandomPoints)
+		{
+			date d(2030, 3, 12);
+			DiscountFactorType df = pCurve->getDiscountFactor(d);
+			Assert::AreEqual(0.576921389, df, 0.00000001);
+			//date d(2007, 3, 17);
+			//DiscountFactorType df = pCurve->getDiscountFactor(d);
+			//Assert::AreEqual(0.999823633, df, 0.00000001);
+			//Assert::AreEqual(0.99593897, pCurve->getDiscountFactor(date(2007, 10, 3)), 0.00000001);
+			//Assert::AreEqual(0.98550608, pCurve->getDiscountFactor(date(2008, 11, 11)), 0.00000001);
+			//Assert::AreEqual(0.984689124, pCurve->getDiscountFactor(date(2008, 12, 8)), 0.00000001);
+			//Assert::AreEqual(0.982191662, pCurve->getDiscountFactor(date(2009, 2, 24)), 0.00000001);
+		}
+
 	};
 }
