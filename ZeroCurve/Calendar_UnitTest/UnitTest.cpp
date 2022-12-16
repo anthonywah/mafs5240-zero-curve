@@ -77,6 +77,7 @@ namespace UnitTest
 
 		TEST_METHOD(IMMDay1)
 		{
+			int asa = 124;
 			date d(2022, 12, 21);
 			Assert::IsTrue(pJpy->isIMMDay(d));
 			date d2 = pJpy->nextIMMDay(d);
@@ -96,11 +97,10 @@ namespace UnitTest
 		{
 			// test class initialization code
 			string mkt = "JPY";
-			string holidayPath = "C:\\Users\\liuch\\\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
+			string holidayPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
 			const char* curveDataPath = "C:\\Users\\liuch\\Desktop\\MAFS5240\\mafs5240-zero-curve\\ZeroCurve\\\curveData.txt";
 			//string holidayPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\JPY_Holiday.txt";
 			//const char* curveDataPath = "C:\\Users\\wahch\\Desktop\\MAFM\\GroupProject\\mafs5240-zero-curve\\ZeroCurve\\curveData.txt";
-			Desktop
 			pJpy = new MMCalendar(holidayPath, mkt);
 			cd.load(curveDataPath);
 			pCurve = new Curve(cd.baseDate, cd.daysToSpot, pJpy, cd.cash, cd.futures, cd.swaps);

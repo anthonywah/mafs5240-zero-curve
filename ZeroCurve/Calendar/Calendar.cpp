@@ -137,7 +137,7 @@ MMCalendar::nextIMMDay(date& dt) {
 
 
 		// third wednesday is always the first wednesday on or after day 15 of the month
-		date day15 = date(dt.year(), dt.month(), 15);
+		date day15(dt.year(), dt.month(), 15);
 		date imm_day = day15 + (7 + 3 - day15.dayOfWeek()) % 7; // this gets the 1st wednesday after day 15 of the month
 		roll(imm_day); // roll to the nearest bus day if it is not
 		// if the imm day has not passed, return it
@@ -147,7 +147,7 @@ MMCalendar::nextIMMDay(date& dt) {
 	}
 	// if it is not march, june, sept, dec, or the imm day of the month has passed
 	// it is same as the next IMM day of the day 1 of next month
-	date som = date(dt.year(), dt.month(), 1);
+	date som(dt.year(), dt.month(), 1);
 	addMonths(som, 1);
-	return nextIMMDay(dt);
+	return nextIMMDay(som);
 }
